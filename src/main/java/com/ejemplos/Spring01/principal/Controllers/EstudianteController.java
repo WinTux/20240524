@@ -1,5 +1,9 @@
 package com.ejemplos.Spring01.principal.Controllers;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -9,7 +13,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
@@ -21,6 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ejemplos.Spring01.principal.Exceptions.EstudianteNoEncontradoException;
 import com.ejemplos.Spring01.principal.Models.Estudiante;
@@ -136,5 +144,27 @@ public class EstudianteController {
 			return new ResponseEntity<>("No se modificó exitosamente (JSON Patch)",HttpStatus.INTERNAL_SERVER_ERROR);
 		}//Injeccion de dependencias
 	}
-	// Excepciones
+	@PostMapping(path="/estudiante/subida",consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<String> archivoSubir(@RequestParam("archivito") MultipartFile arch) throws IOException{
+		File elArchivo = new File("/Users/rusokverse/Desktop/"+ arch.getOriginalFilename());
+		FileOutputStream fos = new FileOutputStream(elArchivo);
+		fos.write(arch.getBytes());
+		return ResponseEntity.ok("El archivo se recibió correctamente.");
+	}
+	@GetMapping(path="/estudiante/bajada")
+	public ResponseEntity<Object> descargarArchivo() throws IOException{
+		String nombreArch = "/Users/rusokverse/Desktop/mapache-1.jpg";
+		File archivo = new File(nombreArch);
+		InputStreamResource recurso = new InputStreamResource(new FileInputStream(archivo));
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+		headers.add("Pragma","no-cache");
+		headers.add("Expires", "0");
+		ResponseEntity<Object> re = ResponseEntity.ok()
+				.headers(headers).contentLength(archivo.length())
+				.contentType(MediaType.parseMediaType("application/txt"))
+				.body(recurso);
+		return re;
+	}
+	
 }

@@ -1,6 +1,7 @@
 package com.ejemplos.Spring01.principal.Configurations;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,9 +30,9 @@ public class ConfiguracionDeSeguridad {
 	
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
-		return http.requiresChannel(channel ->
-			channel.anyRequest().requiresInsecure()
-			).authorizeHttpRequests(authorize->
+		return http
+				.securityMatcher(EndpointRequest.toAnyEndpoint())
+				.authorizeHttpRequests(authorize->
 				authorize.anyRequest().permitAll()
 			).build();
 	}

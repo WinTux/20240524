@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -31,7 +32,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ejemplos.Spring01.principal.Exceptions.EstudianteNoEncontradoException;
+import com.ejemplos.Spring01.principal.Models.Est;
 import com.ejemplos.Spring01.principal.Models.Estudiante;
+import com.ejemplos.Spring01.principal.Services.EstudianteService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +49,8 @@ public class EstudianteController {
 	private static final Logger logger = LoggerFactory.getLogger(EstudianteController.class);
 	@Autowired
 	ObjectMapper objectMapper;
-	
+	@Autowired
+	private EstudianteService estudianteService;
 	private static Map<String, Estudiante> estudiantes = new HashMap<>();
 	static {
 		Estudiante e1 = new Estudiante(1, "Pepe","Perales");
@@ -58,7 +62,9 @@ public class EstudianteController {
 	}
 	@GetMapping("/estudiante")// localhost:7001/estudiante [GET]
 	public ResponseEntity<Object> getEstudiantes(){
-		return new ResponseEntity<>(estudiantes.values(),HttpStatus.OK);
+		List<Est> ests = estudianteService.listar();
+		return new ResponseEntity<>(ests,HttpStatus.OK);
+		//return new ResponseEntity<>(estudiantes.values(),HttpStatus.OK);
 	}
 	@PostMapping("/estudiante")//localhost:7001/estudiante [POST]
 	public ResponseEntity<Object> nuevoEst(@RequestBody Estudiante est){
@@ -166,5 +172,9 @@ public class EstudianteController {
 				.body(recurso);
 		return re;
 	}
-	
+	@GetMapping(value="/estudiante/{apellido}")// https://localhost:7001/estudiante/Rocha [GET]
+	public ResponseEntity<Object> getEstudiantePorAp(@PathVariable("apellido") String apellido){
+		List<Est> ests = estudianteService.getPorApellido(apellido);
+		return new ResponseEntity<>(ests, HttpStatus.OK);
+	}
 }

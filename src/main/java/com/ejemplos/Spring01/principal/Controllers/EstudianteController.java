@@ -21,6 +21,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,7 +41,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.ejemplos.Spring01.principal.Exceptions.EstudianteNoEncontradoException;
 import com.ejemplos.Spring01.principal.Models.Est;
 import com.ejemplos.Spring01.principal.Models.Estudiante;
+import com.ejemplos.Spring01.principal.Models.PeticionAuth;
+import com.ejemplos.Spring01.principal.Models.RespuestaAuthJwt;
 import com.ejemplos.Spring01.principal.Services.EstudianteService;
+import com.ejemplos.Spring01.principal.Services.JwtService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +61,10 @@ public class EstudianteController {
 	ObjectMapper objectMapper;
 	@Autowired
 	private EstudianteService estudianteService;
+	@Autowired
+	private AuthenticationManager authenticationManager;
+	@Autowired
+	private JwtService jwtService;
 	private static Map<String, Estudiante> estudiantes = new HashMap<>();
 	static {
 		Estudiante e1 = new Estudiante(1, "Pepe","Perales");
@@ -62,6 +73,17 @@ public class EstudianteController {
 		estudiantes.put("1", e1);
 		estudiantes.put("2", e2);
 		estudiantes.put("3", e3);
+	}
+	@PostMapping("/login")
+	public ResponseEntity<RespuestaAuthJwt> AuthenticateAndGetToken(@RequestBody PeticionAuth authRequestDTO){
+	    Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequestDTO.getUsuario(), authRequestDTO.getPassword()));
+	    if(authentication.isAuthenticated()){
+	    	RespuestaAuthJwt r = new RespuestaAuthJwt();
+	    	r.setToken(jwtService.GenerateToken(authRequestDTO.getUsuario()));
+	       return new ResponseEntity<>(r, HttpStatus.OK);
+	    } else {
+	        throw new UsernameNotFoundException("Peticion incorrecta");
+	    }
 	}
 	@GetMapping("/estudiante")// localhost:7001/estudiante [GET]
 	public ResponseEntity<Object> getEstudiantes(){

@@ -30,4 +30,7 @@ public class EstudianteService {
 	public void eliminar(Est est) {
 		estudianteRepositorio.delete(est);
 	}
+	public Optional<Est> hallarPorEmail(String email){
+		return estudianteRepositorio.findByEmail(email);
+	}
 }
